@@ -153,6 +153,53 @@ class _Social extends SocialBase {
 		d.dispatch(IDNetEvent.ID_INITIALIZE_COMPLETE);
 	}
 	
+	
+	override public function setUseLocalStorage(value = false):Void
+	{
+		
+		
+	}
+	
+	override public function seSaveData(field:String, value:Dynamic):Void
+	{
+		_ID.api('user_data/submit', 'POST', {key: field, value: value}, function(response){
+			trace(response);
+		});
+	}
+	
+	override public function getSaveData(field:String, callback:Dynamic->Dynamic):Void
+	{
+		_ID.api('user_data/retrieve', 'POST', {key: field}, callback);
+	}
+	
+	override public function clearSaveData(field:String):Void
+	{
+		_ID.api('user_data/remove', 'POST', {key: field}, function(response){
+			trace(response);
+		});
+	}
+	
+	override public function achievementsSave(achName:String, achKey:String, playerName:String, overwrite:Bool = false, allowDuplicates:Bool = false):Void
+	{
+		var achievement: {achName:String, achKey:String, playerName:String, overwrite:Bool, allowDuplicates:Bool};
+		
+		achievement = {
+			achName: achName,
+			achKey: achKey,
+			playerName: playerName,
+			overwrite: overwrite,
+			allowDuplicates: allowDuplicates
+		}
+		
+		_ID.GameAPI.Achievements.save(achievement, achievementsSaveCallback);
+	}
+	
+	function achievementsSaveCallback():Void
+	{
+		d.dispatch(IDNetEvent.ACHIEVEMENT_UNLOCKED);
+	}
+	
+	
 	private function onIDAuthResponseChange(response:Dynamic):Void 
 	{
 		untyped __js__('window.idnet_autologin = function(response){');

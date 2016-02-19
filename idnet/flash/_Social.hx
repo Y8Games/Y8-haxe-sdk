@@ -26,6 +26,7 @@ typedef Idnet = {
 	var type(default, default):String;		// last type of response
 	var userdata(default, null):Dynamic;	// last saved user data w/o connecting
 	var _protection(default, null):Dynamic;
+	var _cloudStorage(default, default):Dynamic;	// cloud saves
 	
 	//
 	// Public methods
@@ -41,6 +42,7 @@ typedef Idnet = {
 	function submitProfileImage(picture:Sprite, type:String):Void;	// picture profile
 	function toggleInterface(type:String):Void;						// 'login', 'registration', 'scoreboard', or null
 	function logout():Void;											// 
+	function achievementsSave(achName:String, achKey:String, playerName:String, overwrite:Bool, allowDuplicates:Bool):Void;
 }
 
 
@@ -67,7 +69,7 @@ class _Social extends SocialBase {
 	// Variables
 	//
 	private var _idnet:Idnet;
-	
+	private var _saveData:Dynamic;
 	
 	//
 	// API
@@ -184,10 +186,56 @@ class _Social extends SocialBase {
 		//throw e;
 	}
 	
+	override public function setUseLocalStorage(value = false):Void
+	{
+		_idnet._cloudStorage.useLocalStorage = value;
+	}
+	
+	override public function seSaveData(field:String, value:Dynamic):Void
+	{
+		_idnet._cloudStorage.setData(field, value);
+	}
+	
+	override public function getSaveData(field:String, callback:Dynamic->Dynamic):Void
+	{
+		_saveData = null;
+		
+		try{
+			_saveData = _idnet._cloudStorage.getData(field);
+		} catch(e:Dynamic) {
+			d.dispatch(IDNetEvent.GET_SAVE_FAIL);
+		}
+		Reflect.callMethod(this, callback, [_saveData]);
+	}
+	
+	override public function clearSaveData(field:String):Void
+	{
+		try{
+			_idnet._cloudStorage.clearData(field);
+		} catch(e:Dynamic) {
+			d.dispatch(IDNetEvent.GET_SAVE_FAIL);
+		}
+	}
+	
+	override public function achievementsSave(achName:String, achKey:String, playerName:String, overwrite:Bool = false, allowDuplicates:Bool = false):Void
+	{
+		_idnet.achievementsSave(achName, achKey, playerName, overwrite, allowDuplicates);
+	}
+	
 	private function handleIDnetEvents(e:Event):Void
 	{
 		switch(_idnet.type)
 		{
+			case 'achievementsSave':
+			{
+                if (_idnet.data.errorcode == 0) {
+					d.dispatch(IDNetEvent.ACHIEVEMENT_UNLOCKED);
+                }
+            }		
+			case 'cloudStorageReady':
+			{
+				d.dispatch(IDNetEvent.ID_SAVE_STORAGE_READY);
+			}
 			case 'login':
 			{
 				if (isError()) 

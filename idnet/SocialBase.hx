@@ -55,4 +55,29 @@ class SocialBase
 	{
 		//stub
 	}
+	
+	public function setUseLocalStorage(value = false):Void
+	{
+		//stub
+	}
+	
+	public function seSaveData(field:String, value:Dynamic):Void
+	{
+		//stub
+	}
+	
+	public function getSaveData(field:String, callback:Dynamic->Dynamic):Void
+	{
+		//stub
+	}
+	
+	public function clearSaveData(field:String):Void
+	{
+		//stub
+	}
+	
+	public function achievementsSave(achName:String, achKey:String, playerName:String, overwrite:Bool = false, allowDuplicates:Bool = false):Void
+	{
+		//stub
+	}
 }

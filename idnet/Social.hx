@@ -87,6 +87,31 @@ class Social extends EventDispatcher implements IDispatcher {
 	public function sendImage(myImage:Sprite, imageType:String):Void { _social.sendImage(myImage, imageType); }
 	#end
 	
+	public function setUseLocalStorage(value = false):Void
+	{
+		_social.setUseLocalStorage(value);
+	}
+	
+	public function seSaveData(field:String, value:Dynamic):Void
+	{
+		_social.seSaveData(field, value);
+	}
+	
+	public function getSaveData(field:String, callback:Dynamic->Dynamic):Void
+	{
+		_social.getSaveData(field, callback);
+	}
+	
+	public function clearSaveData(field:String):Void
+	{
+		_social.clearSaveData(field);
+	}
+	
+	public function achievementsSave(achName:String, achKey:String, playerName:String, overwrite:Bool = false, allowDuplicates:Bool = false):Void
+	{
+		_social.achievementsSave(achName, achKey, playerName, overwrite, allowDuplicates);
+	}
+	
 	//
 	// Implemented from IDispatcher:
 	//
