@@ -20,13 +20,34 @@ class Social extends EventDispatcher implements IDispatcher {
 	//
 	
     private static var _instance:Social;
-    public static var i(get, never):Social;
-    private static function get_i():Social {
+    private static var i(get, never):Social;
+    public static function get_i():Social {
 
         if (_instance == null) _instance = new Social();
         return _instance;
     }
 	
+	@:isVar public var username(get, set):String;
+	@:isVar public var sessionKey(get, set):String;
+	
+	public function set_username(newName)  
+	{ 
+		username = newName;
+		return username;
+	}
+	public function get_username()  
+	{ 
+		return username;
+	}
+	public function set_sessionKey(newKey) 
+	{ 
+		sessionKey = newKey;
+		return sessionKey;
+	}
+	public function get_sessionKey() 
+	{ 
+		return sessionKey;
+	}	
 	
 	//
 	// Constructor
@@ -69,7 +90,7 @@ class Social extends EventDispatcher implements IDispatcher {
 		//_social.injectInitParams(new InitParameters(Lib.current.stage, appId, appSecret, debug));
 		_social.injectInitParams(new InitParameters(Lib.current.stage, appId, appSecret, verbose, showPreloader, protection));
 		#end
-			
+		
         _social.init();
     }
 	
@@ -110,6 +131,11 @@ class Social extends EventDispatcher implements IDispatcher {
 	public function achievementsSave(achName:String, achKey:String, playerName:String, overwrite:Bool = false, allowDuplicates:Bool = false):Void
 	{
 		_social.achievementsSave(achName, achKey, playerName, overwrite, allowDuplicates);
+	}
+	
+	public function achievementsList():Void
+	{
+		_social.achievementsList();
 	}
 	
 	//

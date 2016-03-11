@@ -56,6 +56,7 @@ class _Social extends SocialBase {
 	private static inline var EVENT_SUBMIT:String = 'submit';
 	private static inline var EVENT_RETRIEVE:String = 'retrieve';
 	
+	// @isVar forces the field to be physical allowing the program to compile.	
 	
 	//
 	// Constructor
@@ -148,7 +149,6 @@ class _Social extends SocialBase {
 	
 	private function onSWCLoaded(e:Event):Void 
 	{
-		//trace("onSWCLoaded");
 		var loader = e.target.loader;
 		loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onSWCLoaded);
 		loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onSWCLoadingFailed);
@@ -163,6 +163,8 @@ class _Social extends SocialBase {
 		
 		_idnet = e.target.content;
 		_idnet.addEventListener(EVENT, handleIDnetEvents);
+		trace("_idnet: " + _idnet);
+		
 		
 		params.stageRef.addChild(_idnet);
 		_idnet.init(
@@ -173,6 +175,8 @@ class _Social extends SocialBase {
 			params.showPreloader,
 			params.protection
 		);
+		
+		setUseLocalStorage();
 		
 		d.dispatch(IDNetEvent.ID_INITIALIZE_COMPLETE);
 	}
@@ -189,10 +193,14 @@ class _Social extends SocialBase {
 	override public function setUseLocalStorage(value = false):Void
 	{
 		_idnet._cloudStorage.useLocalStorage = value;
+		trace("[f] useLocalStorage: " + _idnet._cloudStorage.useLocalStorage);
+		
 	}
 	
 	override public function seSaveData(field:String, value:Dynamic):Void
 	{
+		trace("[f] seSaveData: " + field + ": " + value);
+		
 		_idnet._cloudStorage.setData(field, value);
 	}
 	
@@ -202,9 +210,12 @@ class _Social extends SocialBase {
 		
 		try{
 			_saveData = _idnet._cloudStorage.getData(field);
-		} catch(e:Dynamic) {
+		} catch (e:Dynamic) {
 			d.dispatch(IDNetEvent.GET_SAVE_FAIL);
 		}
+		
+		trace("[f] getSaveData: " + field + "[" + _saveData + "]");
+		
 		Reflect.callMethod(this, callback, [_saveData]);
 	}
 	
@@ -222,6 +233,11 @@ class _Social extends SocialBase {
 		_idnet.achievementsSave(achName, achKey, playerName, overwrite, allowDuplicates);
 	}
 	
+	override public function achievementsList():Void
+	{
+		_idnet.toggleInterface('achievements');
+	}
+	
 	private function handleIDnetEvents(e:Event):Void
 	{
 		switch(_idnet.type)
@@ -234,6 +250,7 @@ class _Social extends SocialBase {
             }		
 			case 'cloudStorageReady':
 			{
+				//trace('cloudStorageReady');
 				d.dispatch(IDNetEvent.ID_SAVE_STORAGE_READY);
 			}
 			case 'login':
@@ -250,9 +267,18 @@ class _Social extends SocialBase {
 					trace('Error: ' + _idnet.data.error);
 				} 
 				else 
-				{
-					Reg.userName = _idnet.data.user.nickname;
-					Reg.sessionKey = _idnet.data.sessionKey;
+				{					
+					//username = _idnet.data.user.nickname;
+					//sessionKey = _idnet.data.sessionKey;
+					//set_username(_idnet.data.user.nickname);
+					//set_sessionKey(_idnet.data.sessionKey);
+					
+					Social.get_i().set_username(_idnet.data.user.nickname);
+					Social.get_i().set_sessionKey(_idnet.data.sessionKey);
+					
+					//trace("username: " + Social.get_i().get_username());
+					//trace("sessionKey: " + Social.get_i().get_sessionKey());
+					
 					trace('logged in');
 					this.authorized = true;
 					d.dispatch(IDNetEvent.ID_AUTH_COMPLETE);
@@ -319,70 +345,6 @@ class _Social extends SocialBase {
 			}
 		}
 	}
-	
-	/*private function handleIDnetEvents(e:Event):Void
-	{
-		if (_idnet.type == 'login') {
-			if (isError()) {
-				if (_idnet.data.error == 'Key not found' ) {
-					//stub
-					return;
-				}
-				this.authorized = false;
-				d.dispatch(IDNetEvent.ID_AUTH_FAIL);
-				trace('Error: ' + _idnet.data.error);
-			} else {
-				Reg.userName = _idnet.data.user.nickname;
-				Reg.sessionKey = _idnet.data.sessionKey;
-				//trace('is logged in: ' + _idnet.isLoggedIn);
-				//trace('Session Key: '+_idnet.data.sessionKey);
-				//trace('Email: '+_idnet.data.user.email);
-				//trace('Nickname: '+_idnet.data.user.nickname);
-				//trace('Pid: ' + _idnet.data.user.pid);
-				trace('logged in');
-				this.authorized = true;
-				d.dispatch(IDNetEvent.ID_AUTH_COMPLETE);
-			}
-		} else 
-		if (_idnet.type == 'submit') {
-			if (isError()) {
-				trace('Error: '+_idnet.data.error);
-			} else {
-				trace('Status: ' + _idnet.data.status);
-				_idnet.toggleInterface('scoreboard');
-			}
-		} else 
-		if (_idnet.type == 'retrieve') {
-			if (isError()) {
-				trace('Error: '+_idnet.data.error);
-			} else {
-				trace('Key '+_idnet.data.key);
-				trace('Data: '+_idnet.data.jsondata);
-			}
-		} else 
-		if (_idnet.type == 'score') {
-			if (isError()) {
-				trace('Error: '+_idnet.data.error);
-			} else {
-				trace(_idnet.data.error);
-			}
-		} else
-		if (_idnet.type == 'profileImage') {
-			var _json:Dynamic = Json.parse(_idnet.data);
-			
-			if (_json.success == true)
-			{
-				d.dispatch(IDNetEvent.ID_SEND_COMPLETE);
-			}
-			else if (_json.success == false)
-			{
-				d.dispatch(IDNetEvent.ID_SEND_FAIL);
-			}
-		} else
-		{
-			trace('unhandled event type: ' + _idnet.type);
-		}
-	}*/
 	
 	private function isError():Bool { return _idnet.data.error != null && _idnet.data.error.length != 0; }
 }

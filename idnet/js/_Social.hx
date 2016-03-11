@@ -1,7 +1,9 @@
 package idnet.js;
+import haxe.ds.Option;
 import haxe.Http;
 import haxe.Json;
 import haxe.Timer;
+import haxe.Utf8;
 import idnet.common.events.IDNetEvent;
 import idnet.common.events.PostStatusEvent;
 import idnet.common.FeedParameters;
@@ -18,15 +20,14 @@ class _Social extends SocialBase {
 	private static inline var SCRIPT_ID:String = 'id-jssdk';
 	private static inline var HTTP_API_PATH:String = 'http://cdn.id.net/api/sdk.js';
 	private static inline var HTTPS_API_PATH:String = 'https://scdn.id.net/api/sdk.js';
-
 	
 	//
 	// Constructor
 	//
 	
     public function new() { 
-		super(); 
-	
+		super();
+		
 		_document = Browser.document; 
 		_unsafeWindow = cast _document.defaultView;
 	}
@@ -39,7 +40,6 @@ class _Social extends SocialBase {
 	private var _document:Document;
 	private var _unsafeWindow:Dynamic;
 	private var _ID:Dynamic;
-	
 	
 	//
 	// API
@@ -60,7 +60,6 @@ class _Social extends SocialBase {
 		var idnetSDKloader = _document.createScriptElement();
 		idnetSDKloader.id = SCRIPT_ID;
 		
-
 		idnetSDKloader.src = _document.location.protocol == 'https:' ? HTTPS_API_PATH : HTTP_API_PATH;
 		_document.head.insertBefore(idnetSDKloader, _document.getElementsByTagName('script')[0]);
 		
@@ -148,8 +147,14 @@ class _Social extends SocialBase {
 	// Event listeners
 	//
 	private function onIDInitializeComplete():Void 
-	{
-		trace('ID.initializeComplete');
+	{		
+		_ID.GameAPI.init(params.appId, null, function(data, response) 
+		{
+			trace("GameAPI.initialize_complete, data: " + data);
+			_ID.GameAPI.Achievements.list(response);
+		});
+		
+		trace('ID.initialize_complete');
 		d.dispatch(IDNetEvent.ID_INITIALIZE_COMPLETE);
 	}
 	
@@ -157,23 +162,57 @@ class _Social extends SocialBase {
 	override public function setUseLocalStorage(value = false):Void
 	{
 		
-		
 	}
 	
-	override public function seSaveData(field:String, value:Dynamic):Void
+	/*private function sendCallback(e:Dynamic):Void
 	{
-		_ID.api('user_data/submit', 'POST', {key: field, value: value}, function(response){
+		if (e != null)
+		{
+			trace("data send callback");
+			trace("e: " + e);
+		}
+		else
+		{
+			trace("for generation js code");
+		}
+	}	
+	private function sendError(e:Dynamic):Void
+	{
+		if (e != null)
+		{
+			trace("data send error");
+			trace("e: " + e);
+		}
+		else
+		{
+			trace("for generation js code");
+		}
+	}*/
+	
+	override public function seSaveData(field:String, myValue:Dynamic):Void
+	{
+		trace("[j] seSaveData: " + field + ": " + myValue);
+		
+		_ID.api('user_data/submit', 'POST', {key: field, value: myValue}, function(response){
 			trace(response);
 		});
-	}
-	
+		
+		//untyped __js__("ID.api('user_data/submit', 'POST', {key: field, value: myValue}, function(response){");
+		//untyped __js__("console.log(response)");
+		//untyped __js__("})");
+		
+		//untyped __js__("jQuery.post('https://www.id.net/api/user_data/submit', myValue, \u0024bind(this, this.sendCallback)).fail(\u0024bind(this, this.sendError))");
+	}	
 	override public function getSaveData(field:String, callback:Dynamic->Dynamic):Void
 	{
+		trace("[j] getSaveData: " + field);
+		
 		_ID.api('user_data/retrieve', 'POST', {key: field}, callback);
 	}
-	
 	override public function clearSaveData(field:String):Void
 	{
+		trace("[j] clearSaveData: " + field);
+		
 		_ID.api('user_data/remove', 'POST', {key: field}, function(response){
 			trace(response);
 		});
@@ -194,23 +233,32 @@ class _Social extends SocialBase {
 		_ID.GameAPI.Achievements.save(achievement, achievementsSaveCallback);
 	}
 	
+	override public function achievementsList():Void
+	{
+		_ID.GameAPI.Achievements.list();
+		//untyped __js__('ID.GameAPI.Achievements.list()');
+	}
+	
 	function achievementsSaveCallback():Void
 	{
 		d.dispatch(IDNetEvent.ACHIEVEMENT_UNLOCKED);
 	}
 	
-	
 	private function onIDAuthResponseChange(response:Dynamic):Void 
-	{
+	{		
+		Social.get_i().set_username("empty_name");
+		Social.get_i().set_sessionKey("empty_key");
+		
 		untyped __js__('window.idnet_autologin = function(response){');
-		untyped __js__('Reg.sessionKey = response.sessionKey;');
-		untyped __js__('Reg.userName = response.user.nickname;');
-		untyped __js__('Reg.stateManager.getCurrentState()._login();');
+		untyped __js__('idnet.Social.get_i().set_username(response.user.nickname)');
+		untyped __js__('idnet.Social.get_i().set_sessionKey(response.sessionKey)');
+		//untyped __js__('console.log(idnet.Social.get_i().get_username())');
+		//untyped __js__('console.log(idnet.Social.get_i().get_sessionKey())');
+		//untyped __js__('Reg.stateManager.getCurrentState()._login();');
 		untyped __js__('}');
 		
-		
 		var autologinElement:ScriptElement = _document.createScriptElement();
-		autologinElement.src = "https://www.id.net/api/user_data/autologin?app_id=" + Reg.app_id + "&callback=idnet_autologin";
+		autologinElement.src = "https://www.id.net/api/user_data/autologin?app_id=" + params.appId + "&callback=idnet_autologin";
 		_document.head.insertBefore(autologinElement, _document.getElementsByTagName('script')[0]);
 		
 		var autologinElement:ScriptElement = _document.createScriptElement();
