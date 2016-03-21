@@ -110,6 +110,10 @@ class _Social extends SocialBase {
 		_ID.Event.subscribe(IDNetEvent.ID_AUTH_RESPONSE_CHANGE, onIDAuthResponseChange);
 		
 		_ID.init(this.params);
+		_ID.GameAPI.init(params.appId, null, function(data, response) 
+		{
+			trace("GameAPI.initialize_complete, data: " + data);
+		});
 	}
 	
 	/**
@@ -148,12 +152,6 @@ class _Social extends SocialBase {
 	//
 	private function onIDInitializeComplete():Void 
 	{		
-		_ID.GameAPI.init(params.appId, null, function(data, response) 
-		{
-			trace("GameAPI.initialize_complete, data: " + data);
-			_ID.GameAPI.Achievements.list(response);
-		});
-		
 		trace('ID.initialize_complete');
 		d.dispatch(IDNetEvent.ID_INITIALIZE_COMPLETE);
 	}
@@ -162,6 +160,32 @@ class _Social extends SocialBase {
 	override public function setUseLocalStorage(value = false):Void
 	{
 		
+	}
+	
+	override public function showLeaderBoard(table:String, highest:Bool = true, allowDuplicates:Bool = false, useMilliseconds:Bool = false):Void
+	{
+		var tableData:{table:String, highest:Bool, allowDuplicates:Bool, useMilliseconds:Bool};
+		tableData = {
+			table: table,
+			highest: highest,
+			allowDuplicates: allowDuplicates,
+			useMilliseconds: useMilliseconds
+		};
+		
+		_ID.GameAPI.Leaderboards.list(tableData);
+	}
+	
+	override public function submitScore(table:String, score:Int, playerName:String, highest:Bool = true, allowDuplicates:Bool = false):Void
+	{
+		var scoreData: {table:String, points:Int, playerName:String, highest:Bool, allowDuplicates:Bool};
+		scoreData = {
+			table: table,
+			points: score,
+			playerName: playerName,
+			highest: highest,
+			allowDuplicates: allowDuplicates
+		};
+		_ID.GameAPI.Leaderboards.save(scoreData);
 	}
 	
 	/*private function sendCallback(e:Dynamic):Void
@@ -189,19 +213,13 @@ class _Social extends SocialBase {
 		}
 	}*/
 	
-	override public function seSaveData(field:String, myValue:Dynamic):Void
+	override public function setSaveData(field:String, myValue:Dynamic):Void
 	{
 		trace("[j] seSaveData: " + field + ": " + myValue);
 		
 		_ID.api('user_data/submit', 'POST', {key: field, value: myValue}, function(response){
 			trace(response);
 		});
-		
-		//untyped __js__("ID.api('user_data/submit', 'POST', {key: field, value: myValue}, function(response){");
-		//untyped __js__("console.log(response)");
-		//untyped __js__("})");
-		
-		//untyped __js__("jQuery.post('https://www.id.net/api/user_data/submit', myValue, \u0024bind(this, this.sendCallback)).fail(\u0024bind(this, this.sendError))");
 	}	
 	override public function getSaveData(field:String, callback:Dynamic->Dynamic):Void
 	{
@@ -220,11 +238,11 @@ class _Social extends SocialBase {
 	
 	override public function achievementsSave(achName:String, achKey:String, playerName:String, overwrite:Bool = false, allowDuplicates:Bool = false):Void
 	{
-		var achievement: {achName:String, achKey:String, playerName:String, overwrite:Bool, allowDuplicates:Bool};
+		var achievement: {achievement:String, achievementkey:String, playerName:String, overwrite:Bool, allowDuplicates:Bool};
 		
 		achievement = {
-			achName: achName,
-			achKey: achKey,
+			achievement: achName,
+			achievementkey: achKey,
 			playerName: playerName,
 			overwrite: overwrite,
 			allowDuplicates: allowDuplicates
@@ -236,7 +254,6 @@ class _Social extends SocialBase {
 	override public function achievementsList():Void
 	{
 		_ID.GameAPI.Achievements.list();
-		//untyped __js__('ID.GameAPI.Achievements.list()');
 	}
 	
 	function achievementsSaveCallback():Void

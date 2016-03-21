@@ -61,7 +61,7 @@ class SocialBase
 		//stub
 	}
 	
-	public function seSaveData(field:String, value:Dynamic):Void
+	public function setSaveData(field:String, value:Dynamic):Void
 	{
 		//stub
 	}
@@ -82,6 +82,16 @@ class SocialBase
 	}
 	
 	public function achievementsList():Void
+	{
+		//stub
+	}
+	
+	public function showLeaderBoard(table:String, highest:Bool = true, allowDuplicates:Bool = false, useMilliseconds:Bool = false):Void
+	{
+		//stub
+	}
+	
+	public function submitScore(table:String, score:Int, playerName:String, highest:Bool = true, allowDuplicates:Bool = false):Void
 	{
 		//stub
 	}

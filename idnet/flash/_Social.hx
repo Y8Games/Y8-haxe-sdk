@@ -43,6 +43,8 @@ typedef Idnet = {
 	function toggleInterface(type:String):Void;						// 'login', 'registration', 'scoreboard', or null
 	function logout():Void;											// 
 	function achievementsSave(achName:String, achKey:String, playerName:String, overwrite:Bool, allowDuplicates:Bool):Void;
+	function advancedScoreList(table:String, highest:Bool, allowDuplicates:Bool, useMilliseconds:Bool):Void;
+	function advancedScoreSubmit(score:Int, table:String, playerName:String, highest:Bool, allowDuplicates:Bool):Void;
 }
 
 
@@ -197,7 +199,7 @@ class _Social extends SocialBase {
 		
 	}
 	
-	override public function seSaveData(field:String, value:Dynamic):Void
+	override public function setSaveData(field:String, value:Dynamic):Void
 	{
 		trace("[f] seSaveData: " + field + ": " + value);
 		
@@ -226,6 +228,16 @@ class _Social extends SocialBase {
 		} catch(e:Dynamic) {
 			d.dispatch(IDNetEvent.GET_SAVE_FAIL);
 		}
+	}
+	
+	override public function showLeaderBoard(table:String, highest:Bool = true, allowDuplicates:Bool = false, useMilliseconds:Bool = false):Void
+	{
+		_idnet.advancedScoreList(table, highest, allowDuplicates, useMilliseconds);
+	}
+	
+	override public function submitScore(table:String, score:Int, playerName:String, highest:Bool = true, allowDuplicates:Bool = false):Void
+	{
+		_idnet.advancedScoreSubmit(score, table, playerName, highest, allowDuplicates);
 	}
 	
 	override public function achievementsSave(achName:String, achKey:String, playerName:String, overwrite:Bool = false, allowDuplicates:Bool = false):Void

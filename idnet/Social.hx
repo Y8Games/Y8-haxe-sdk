@@ -113,9 +113,9 @@ class Social extends EventDispatcher implements IDispatcher {
 		_social.setUseLocalStorage(value);
 	}
 	
-	public function seSaveData(field:String, value:Dynamic):Void
+	public function setSaveData(field:String, value:Dynamic):Void
 	{
-		_social.seSaveData(field, value);
+		_social.setSaveData(field, value);
 	}
 	
 	public function getSaveData(field:String, callback:Dynamic->Dynamic):Void
@@ -136,6 +136,16 @@ class Social extends EventDispatcher implements IDispatcher {
 	public function achievementsList():Void
 	{
 		_social.achievementsList();
+	}
+	
+	public function showLeaderBoard(table:String, highest:Bool = true, allowDuplicates:Bool = false, useMilliseconds:Bool = false):Void
+	{
+		_social.showLeaderBoard(table, highest, allowDuplicates, useMilliseconds);
+	}
+	
+	public function submitScore(table:String, score:Int, playerName:String, highest:Bool = true, allowDuplicates:Bool = false):Void
+	{
+		_social.submitScore(table, score, playerName, highest, allowDuplicates);
 	}
 	
 	//
