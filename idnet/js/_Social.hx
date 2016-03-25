@@ -39,7 +39,6 @@ class _Social extends SocialBase {
 	
 	private var _document:Document;
 	private var _unsafeWindow:Dynamic;
-	private var _ID:Dynamic;
 	
 	//
 	// API
@@ -72,12 +71,12 @@ class _Social extends SocialBase {
 	 */
 	override public function register():Void 
 	{
-		_ID.register(registerCallback);
+		_unsafeWindow.ID.register(registerCallback);
 	}
 	
 	override public function loginPopup():Void 
 	{
-		_ID.login(registerCallback);
+		_unsafeWindow.ID.login(registerCallback);
 	}
 	
 	/**
@@ -92,7 +91,7 @@ class _Social extends SocialBase {
 		
 		//todo: parameters should be validated here:
 		
-		_ID.ui(params.serialize(), feedPostCallback); 
+		_unsafeWindow.ID.ui(params.serialize(), feedPostCallback); 
 	}
 	
 	
@@ -103,17 +102,11 @@ class _Social extends SocialBase {
 	 * At this point idnet SDK is fully loaded and ready to be called.
 	 */
 	private function asyncInit():Void 
-	{
-		_ID = _unsafeWindow.ID;
+	{		
+		_unsafeWindow.ID.Event.subscribe(IDNetEvent.ID_INITIALIZE_COMPLETE, onIDInitializeComplete);
+		_unsafeWindow.ID.Event.subscribe(IDNetEvent.ID_AUTH_RESPONSE_CHANGE, onIDAuthResponseChange);
 		
-		_ID.Event.subscribe(IDNetEvent.ID_INITIALIZE_COMPLETE, onIDInitializeComplete);
-		_ID.Event.subscribe(IDNetEvent.ID_AUTH_RESPONSE_CHANGE, onIDAuthResponseChange);
-		
-		_ID.init(this.params);
-		_ID.GameAPI.init(params.appId, null, function(data, response) 
-		{
-			trace("GameAPI.initialize_complete, data: " + data);
-		});
+		_unsafeWindow.ID.init({appId: this.params.appId});
 	}
 	
 	/**
@@ -153,6 +146,11 @@ class _Social extends SocialBase {
 	private function onIDInitializeComplete():Void 
 	{		
 		trace('ID.initialize_complete');
+		
+		_unsafeWindow.ID.GameAPI.init(params.appId, null, function(data, response) 
+		{
+			trace("GameAPI.initialize_complete, data: " + data);
+		});
 		d.dispatch(IDNetEvent.ID_INITIALIZE_COMPLETE);
 	}
 	
@@ -172,7 +170,7 @@ class _Social extends SocialBase {
 			useMilliseconds: useMilliseconds
 		};
 		
-		_ID.GameAPI.Leaderboards.list(tableData);
+		_unsafeWindow.ID.GameAPI.Leaderboards.list(tableData);
 	}
 	
 	override public function submitScore(table:String, score:Int, playerName:String, highest:Bool = true, allowDuplicates:Bool = false):Void
@@ -185,7 +183,7 @@ class _Social extends SocialBase {
 			highest: highest,
 			allowDuplicates: allowDuplicates
 		};
-		_ID.GameAPI.Leaderboards.save(scoreData);
+		_unsafeWindow.ID.GameAPI.Leaderboards.save(scoreData);
 	}
 	
 	/*private function sendCallback(e:Dynamic):Void
@@ -217,7 +215,7 @@ class _Social extends SocialBase {
 	{
 		trace("[j] seSaveData: " + field + ": " + myValue);
 		
-		_ID.api('user_data/submit', 'POST', {key: field, value: myValue}, function(response){
+		_unsafeWindow.ID.api('user_data/submit', 'POST', {key: field, value: myValue}, function(response){
 			trace(response);
 		});
 	}	
@@ -225,13 +223,13 @@ class _Social extends SocialBase {
 	{
 		trace("[j] getSaveData: " + field);
 		
-		_ID.api('user_data/retrieve', 'POST', {key: field}, callback);
+		_unsafeWindow.ID.api('user_data/retrieve', 'POST', {key: field}, callback);
 	}
 	override public function clearSaveData(field:String):Void
 	{
 		trace("[j] clearSaveData: " + field);
 		
-		_ID.api('user_data/remove', 'POST', {key: field}, function(response){
+		_unsafeWindow.ID.api('user_data/remove', 'POST', {key: field}, function(response){
 			trace(response);
 		});
 	}
@@ -248,12 +246,12 @@ class _Social extends SocialBase {
 			allowDuplicates: allowDuplicates
 		}
 		
-		_ID.GameAPI.Achievements.save(achievement, achievementsSaveCallback);
+		_unsafeWindow.ID.GameAPI.Achievements.save(achievement, achievementsSaveCallback);
 	}
 	
 	override public function achievementsList():Void
 	{
-		_ID.GameAPI.Achievements.list();
+		_unsafeWindow.ID.GameAPI.Achievements.list();
 	}
 	
 	function achievementsSaveCallback():Void
