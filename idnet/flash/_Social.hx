@@ -337,6 +337,9 @@ class _Social extends SocialBase {
 				{
 					d.dispatch(IDNetEvent.ID_BLACKLISTED);
 				}
+				if (_idnet._protection.isSponsor()) {
+					d.dispatch(IDNetEvent.IS_SPONSOR);
+				}
 			}
 			case 'profileImage':
 			{

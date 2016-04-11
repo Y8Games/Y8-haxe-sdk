@@ -8,7 +8,7 @@ import idnet.common.events.IDNetEvent;
 import idnet.common.events.PostStatusEvent;
 import idnet.common.FeedParameters;
 import js.Browser;
-import js.html.Document;
+import js.html.HTMLDocument;
 import js.html.ScriptElement;
 import openfl.Lib;
 
@@ -37,7 +37,7 @@ class _Social extends SocialBase {
 	// Variables
 	//
 	
-	private var _document:Document;
+	private var _document:HTMLDocument;
 	private var _unsafeWindow:Dynamic;
 	
 	//
@@ -151,6 +151,20 @@ class _Social extends SocialBase {
 		{
 			trace("GameAPI.initialize_complete, data: " + data);
 		});
+		_unsafeWindow.ID.Protection.isBlacklisted(function(blacklisted){
+			trace("ID.isBlacklisted " + blacklisted);
+			if(blacklisted) {
+				d.dispatch(IDNetEvent.ID_BLACKLISTED);
+			}
+		});
+		
+		_unsafeWindow.ID.Protection.isSponsor(function(sponsor){
+			trace("ID.isSponsor " + sponsor);
+			if(sponsor) {
+				d.dispatch(IDNetEvent.IS_SPONSOR);
+			}
+		});
+		
 		d.dispatch(IDNetEvent.ID_INITIALIZE_COMPLETE);
 	}
 	
