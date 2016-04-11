@@ -153,14 +153,14 @@ class _Social extends SocialBase {
 		});
 		_unsafeWindow.ID.Protection.isBlacklisted(function(blacklisted){
 			trace("ID.isBlacklisted " + blacklisted);
-			if(blacklisted) {
+			if(cast blacklisted) {
 				d.dispatch(IDNetEvent.ID_BLACKLISTED);
 			}
 		});
 		
 		_unsafeWindow.ID.Protection.isSponsor(function(sponsor){
 			trace("ID.isSponsor " + sponsor);
-			if(sponsor) {
+			if(cast sponsor) {
 				d.dispatch(IDNetEvent.IS_SPONSOR);
 			}
 		});
