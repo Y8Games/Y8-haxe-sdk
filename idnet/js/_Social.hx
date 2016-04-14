@@ -284,6 +284,7 @@ class _Social extends SocialBase {
 		//untyped __js__('console.log(idnet.Social.get_i().get_username())');
 		//untyped __js__('console.log(idnet.Social.get_i().get_sessionKey())');
 		//untyped __js__('Reg.stateManager.getCurrentState()._login();');
+		d.dispatch(IDNetEvent.ID_AUTH_COMPLETE);
 		untyped __js__('}');
 		
 		var autologinElement:ScriptElement = _document.createScriptElement();
