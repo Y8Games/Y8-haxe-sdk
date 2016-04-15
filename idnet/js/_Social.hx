@@ -9,6 +9,7 @@ import idnet.common.events.PostStatusEvent;
 import idnet.common.FeedParameters;
 import js.Browser;
 import js.html.HTMLDocument;
+import js.html.Event;
 import js.html.ScriptElement;
 import openfl.Lib;
 
@@ -104,7 +105,7 @@ class _Social extends SocialBase {
 	private function asyncInit():Void 
 	{		
 		_unsafeWindow.ID.Event.subscribe(IDNetEvent.ID_INITIALIZE_COMPLETE, onIDInitializeComplete);
-		_unsafeWindow.ID.Event.subscribe(IDNetEvent.ID_AUTH_RESPONSE_CHANGE, onIDAuthResponseChange);
+		//_unsafeWindow.ID.Event.subscribe(IDNetEvent.ID_AUTH_RESPONSE_CHANGE, onIDAuthResponseChange);
 		
 		_unsafeWindow.ID.init({appId: this.params.appId});
 	}
@@ -114,6 +115,11 @@ class _Social extends SocialBase {
 	 */
 	private function registerCallback(response:Dynamic):Void 
 	{
+		if (response != null && response.authResponse  != null && response.authResponse.details != null) {
+			trace(response.authResponse.details.nickname);
+			Social.get_i().set_username(response.authResponse.details.nickname );
+		}
+		
 		if (response == null) {
 			d.dispatch(IDNetEvent.ID_AUTH_FAIL);
 		} else {
@@ -164,7 +170,23 @@ class _Social extends SocialBase {
 				d.dispatch(IDNetEvent.IS_SPONSOR);
 			}
 		});
+
+		Social.get_i().set_username("empty_name");
+		Social.get_i().set_sessionKey("empty_key");
 		
+		untyped __js__('window.idnet_autologin = function(response){');
+		untyped __js__('idnet.Social.get_i().set_username(response.user.nickname)');
+		untyped __js__('idnet.Social.get_i().set_sessionKey(response.sessionKey)');
+		authorized = true;
+		idnet.Social.get_i().dispatch(IDNetEvent.ID_AUTH_COMPLETE);
+		trace('ID.authResponse: isAuthorized: ' + authorized);
+
+		untyped __js__('}');
+		
+		var autologinElement:ScriptElement = _document.createScriptElement();
+		autologinElement.src = "https://www.id.net/api/user_data/autologin?app_id=" + params.appId + "&callback=window.idnet_autologin";
+		_document.head.insertBefore(autologinElement, _document.getElementsByTagName('script')[0]);
+				
 		d.dispatch(IDNetEvent.ID_INITIALIZE_COMPLETE);
 	}
 	
@@ -273,31 +295,28 @@ class _Social extends SocialBase {
 		d.dispatch(IDNetEvent.ACHIEVEMENT_UNLOCKED);
 	}
 	
-	private function onIDAuthResponseChange(response:Dynamic):Void 
+	/*private function onIDAuthResponseChange(response:Dynamic):Void 
 	{		
 		Social.get_i().set_username("empty_name");
 		Social.get_i().set_sessionKey("empty_key");
 		
+		trace("idnet_autologin");
+		_unsafeWindow.idnet_autologin = function(response) {
+			trace(response);
+		}
+		
 		untyped __js__('window.idnet_autologin = function(response){');
 		untyped __js__('idnet.Social.get_i().set_username(response.user.nickname)');
 		untyped __js__('idnet.Social.get_i().set_sessionKey(response.sessionKey)');
-		//untyped __js__('console.log(idnet.Social.get_i().get_username())');
-		//untyped __js__('console.log(idnet.Social.get_i().get_sessionKey())');
-		//untyped __js__('Reg.stateManager.getCurrentState()._login();');
-		d.dispatch(IDNetEvent.ID_AUTH_COMPLETE);
 		untyped __js__('}');
 		
 		var autologinElement:ScriptElement = _document.createScriptElement();
 		autologinElement.src = "https://www.id.net/api/user_data/autologin?app_id=" + params.appId + "&callback=idnet_autologin";
 		_document.head.insertBefore(autologinElement, _document.getElementsByTagName('script')[0]);
 		
-		var autologinElement:ScriptElement = _document.createScriptElement();
-		autologinElement.src = "//code.jquery.com/jquery-1.11.2.min.js";
-		_document.head.insertBefore(autologinElement, _document.getElementsByTagName('script')[0]);
-		
 		
 		authorized = response.status == 'ok';
 		trace('ID.authResponse: isAuthorized: ' + authorized);
 		d.dispatch(IDNetEvent.ID_AUTH_RESPONSE_CHANGE);
-	}
+	}*/
 }
