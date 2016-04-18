@@ -21,6 +21,8 @@ class IDNetEvent
 	public static inline var GET_SAVE_FAIL:String = 'save.get.fail';
 	
 	public static inline var ACHIEVEMENT_UNLOCKED:String = 'achievement.unlocked';
+	
+	public static inline var ID_SCORES_SENDED:String = 'achievement.score_sended';
 
 	public function new() { }
 }

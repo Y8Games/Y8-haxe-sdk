@@ -174,14 +174,24 @@ class _Social extends SocialBase {
 		Social.get_i().set_username("empty_name");
 		Social.get_i().set_sessionKey("empty_key");
 		
-		untyped __js__('window.idnet_autologin = function(response){');
+		_unsafeWindow.window.idnet_autologin = function(response:Dynamic) {
+			if(response != null && response.user != null) {
+				Social.get_i().set_username(response.user.nickname);
+				Social.get_i().set_sessionKey(response.sessionKey);
+				Social.get_i().setAuthorized(true);
+				Social.get_i().dispatch(IDNetEvent.ID_AUTH_COMPLETE);
+				trace('ID.authResponse: isAuthorized: ' + authorized);
+			}
+		}
+		
+		/*untyped __js__('window.idnet_autologin = function(response){');
 		untyped __js__('idnet.Social.get_i().set_username(response.user.nickname)');
 		untyped __js__('idnet.Social.get_i().set_sessionKey(response.sessionKey)');
 		authorized = true;
 		idnet.Social.get_i().dispatch(IDNetEvent.ID_AUTH_COMPLETE);
 		trace('ID.authResponse: isAuthorized: ' + authorized);
 
-		untyped __js__('}');
+		untyped __js__('}');*/
 		
 		var autologinElement:ScriptElement = _document.createScriptElement();
 		autologinElement.src = "https://www.id.net/api/user_data/autologin?app_id=" + params.appId + "&callback=window.idnet_autologin";
@@ -219,7 +229,12 @@ class _Social extends SocialBase {
 			highest: highest,
 			allowDuplicates: allowDuplicates
 		};
-		_unsafeWindow.ID.GameAPI.Leaderboards.save(scoreData);
+		_unsafeWindow.ID.GameAPI.Leaderboards.save(scoreData, onSubmitScoresCallback);
+	}
+	
+	function onSubmitScoresCallback(aData: Dynamic) 
+	{
+		d.dispatch(IDNetEvent.ID_SCORES_SENDED);
 	}
 	
 	/*private function sendCallback(e:Dynamic):Void

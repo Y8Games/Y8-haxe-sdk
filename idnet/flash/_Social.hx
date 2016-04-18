@@ -238,6 +238,8 @@ class _Social extends SocialBase {
 	override public function submitScore(table:String, score:Int, playerName:String, highest:Bool = true, allowDuplicates:Bool = false):Void
 	{
 		_idnet.advancedScoreSubmit(score, table, playerName, highest, allowDuplicates);
+		
+		d.dispatch(IDNetEvent.ID_SCORES_SENDED);
 	}
 	
 	override public function achievementsSave(achName:String, achKey:String, playerName:String, overwrite:Bool = false, allowDuplicates:Bool = false):Void
