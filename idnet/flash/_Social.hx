@@ -238,8 +238,6 @@ class _Social extends SocialBase {
 	override public function submitScore(table:String, score:Int, playerName:String, highest:Bool = true, allowDuplicates:Bool = false):Void
 	{
 		_idnet.advancedScoreSubmit(score, table, playerName, highest, allowDuplicates);
-		
-		d.dispatch(IDNetEvent.ID_SCORES_SENDED);
 	}
 	
 	override public function achievementsSave(achName:String, achKey:String, playerName:String, overwrite:Bool = false, allowDuplicates:Bool = false):Void
@@ -267,6 +265,17 @@ class _Social extends SocialBase {
 				//trace('cloudStorageReady');
 				d.dispatch(IDNetEvent.ID_SAVE_STORAGE_READY);
 			}
+			case "advancedScoreSubmit":
+		    {
+				if (isError()) 
+				{
+					trace('Error: ' + _idnet.data.errormessage);
+				} 
+				else 
+				{
+					d.dispatch(IDNetEvent.ID_SCORES_SENDED);
+				}
+		    }
 			case 'login':
 			{
 				if (isError()) 
