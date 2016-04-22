@@ -95,6 +95,8 @@ class Social extends EventDispatcher implements IDispatcher {
     }
 	
 	public function isAuthorized():Bool { return _social.authorized; }
+	
+	public function setAuthorized(value:Bool):Void { _social.authorized = value; }
 
 	public function register():Void { _social.register(); }
 	
