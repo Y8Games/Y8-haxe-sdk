@@ -157,6 +157,7 @@ class _Social extends SocialBase {
 		{
 			trace("GameAPI.initialize_complete, data: " + data);
 		});
+		
 		_unsafeWindow.ID.Protection.isBlacklisted(function(blacklisted){
 			trace("ID.isBlacklisted " + blacklisted);
 			if(cast blacklisted) {
@@ -181,6 +182,8 @@ class _Social extends SocialBase {
 				Social.get_i().setAuthorized(true);
 				Social.get_i().dispatch(IDNetEvent.ID_AUTH_COMPLETE);
 				trace('ID.authResponse: isAuthorized: ' + authorized);
+				
+				_unsafeWindow.ID.login(registerCallback);
 			}
 		}
 		
