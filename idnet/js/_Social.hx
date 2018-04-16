@@ -61,7 +61,7 @@ class _Social extends SocialBase {
 		idnetSDKloader.id = SCRIPT_ID;
 		
 		idnetSDKloader.src = _document.location.protocol == 'https:' ? HTTPS_API_PATH : HTTP_API_PATH;
-		_document.head.insertBefore(idnetSDKloader, _document.getElementsByTagName('script')[0]);
+		_document.head.appendChild(idnetSDKloader);
 		
 		_unsafeWindow.idAsyncInit = asyncInit;
     }
@@ -198,7 +198,7 @@ class _Social extends SocialBase {
 		
 		var autologinElement:ScriptElement = _document.createScriptElement();
 		autologinElement.src = "https://www.id.net/api/user_data/autologin?app_id=" + params.appId + "&callback=window.idnet_autologin";
-		_document.head.insertBefore(autologinElement, _document.getElementsByTagName('script')[0]);
+		_document.head.appendChild(autologinElement);
 				
 		d.dispatch(IDNetEvent.ID_INITIALIZE_COMPLETE);
 	}
