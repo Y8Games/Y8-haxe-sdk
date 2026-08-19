@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+    <meta title="Y8 SDK Haxe Test" package="com.y8.haxetest" version="1.0.0" company="Y8" />
+    <app main="Main" path="Export" file="Y8Test" />
+    <source path="Source" />
+    <haxelib name="openfl" />
+    <window width="1360" height="768" background="#FFFFFF" />
+    <dependency name="https://cdn.y8.com/minimal-sdk/2-0/y8.min.js" />
+</project>
