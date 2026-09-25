@@ -3,6 +3,7 @@ package y8.js;
 import haxe.Json;
 import js.Browser;
 import js.html.Event;
+import y8.Y8BannerPlacement;
 
 class Y8JS {
     private static var sdk:Dynamic = null;
@@ -264,6 +265,144 @@ class Y8JS {
                     callback(false);
             }
         );
+    }
+
+    // ------------------------------------------------------------------
+    // Banners
+    //
+    // A canvas game has no page element to put a banner in, so each banner gets one: a
+    // banner-sized element over the game canvas, centred on the placeholder the game
+    // reserves for it. The SDK then fills that element. Sizes: 728x90, 300x250, 320x50,
+    // 468x60, 320x100 (the SDK rejects anything else). The SDK paces banners per size, so
+    // a request too soon after the last one of that size gets "bannerCooldown".
+    // ------------------------------------------------------------------
+
+    private static var bannerSlots:Map<String, Dynamic> = new Map();
+    private static var bannerResizeListening:Bool = false;
+
+    /**
+     * `callback(null)` once a banner shows, otherwise `callback(errorCode)` with the SDK's
+     * code (bannerCooldown, unfilled, invalidSize, notVisible, ...). A rejected request
+     * leaves any banner already in this slot where it was.
+     */
+    public static function requestBanner(id:String, width:Int, height:Int, placement:Y8BannerPlacement, callback:String->Void):Void {
+        var done = function(error:String):Void {
+            if (error != null) trace("Banner " + id + " (" + width + "x" + height + "): " + error);
+            if (callback != null) callback(error);
+        };
+        if (!isReady() || sdk.requestBanner == null) { done("bannersUnavailable"); return; }
+        if (id == null || id == "") { done("missingId"); return; }
+        // null when the placeholder isn't on the stage
+        if (placement == null) { done("notVisible"); return; }
+        if (!validBannerPlacement(placement)) { done("invalidSize"); return; }
+        var canvas:Dynamic = Browser.document.querySelector("canvas");
+        if (canvas == null) { done("notVisible"); return; }
+
+        var box = bannerLayout(canvas, placement, width, height);
+        if (box.cssWidth + 1 < width || box.cssHeight + 1 < height) {
+            trace("The placeholder is " + Math.round(box.cssWidth) + "x" + Math.round(box.cssHeight)
+                + " on screen, smaller than " + width + "x" + height);
+            done("invalidSize");
+            return;
+        }
+
+        var slot:Dynamic = bannerSlots.get(id);
+        var previous:Dynamic = slot == null ? null : { width: slot.width, height: slot.height, placement: slot.placement, canvas: slot.canvas };
+        if (slot == null) {
+            var element = Browser.document.createDivElement();
+            element.id = "y8-banner-" + id;
+            element.style.cssText = "position:absolute;z-index:2147483000;";
+            Browser.document.body.appendChild(element);
+            slot = { element: element };
+            bannerSlots.set(id, slot);
+        }
+        slot.width = width;
+        slot.height = height;
+        slot.placement = placement;
+        slot.canvas = canvas;
+        placeBanner(slot);
+        listenForBannerResize();
+
+        sdk.requestBanner({ id: slot.element.id, width: width, height: height }).then(
+            function(v) { done(null); },
+            function(e:Dynamic) {
+                if (bannerSlots.get(id) == slot) {
+                    if (previous != null) {
+                        slot.width = previous.width;
+                        slot.height = previous.height;
+                        slot.placement = previous.placement;
+                        slot.canvas = previous.canvas;
+                        placeBanner(slot);
+                    } else {
+                        removeBannerSlot(id);
+                    }
+                }
+                done(e != null && e.code != null ? Std.string(e.code) : "other");
+            }
+        );
+    }
+
+    /** Follows the placeholder when the game moves it; no new ad is requested. */
+    public static function moveBanner(id:String, placement:Y8BannerPlacement):Void {
+        var slot:Dynamic = bannerSlots.get(id);
+        if (slot == null || !validBannerPlacement(placement)) return;
+        slot.placement = placement;
+        placeBanner(slot);
+    }
+
+    public static function clearBanner(id:String):Void {
+        if (!bannerSlots.exists(id)) return;
+        if (sdk != null) sdk.clearBanner("y8-banner-" + id);
+        removeBannerSlot(id);
+    }
+
+    public static function clearAllBanners():Void {
+        if (sdk != null && sdk.clearAllBanners != null) sdk.clearAllBanners();
+        for (id in [for (key in bannerSlots.keys()) key]) removeBannerSlot(id);
+    }
+
+    // Where a banner goes, in page CSS pixels, plus the placeholder's size on screen.
+    private static function bannerLayout(canvas:Dynamic, p:Y8BannerPlacement, width:Int, height:Int):Dynamic {
+        var rect:Dynamic = canvas.getBoundingClientRect();
+        var window:Dynamic = Browser.window;
+        var scaleX:Float = rect.width / p.areaWidth;
+        var scaleY:Float = rect.height / p.areaHeight;
+        var cssWidth:Float = p.width * scaleX;
+        var cssHeight:Float = p.height * scaleY;
+        return {
+            left: rect.left + window.scrollX + p.x * scaleX + (cssWidth - width) / 2,
+            top: rect.top + window.scrollY + p.y * scaleY + (cssHeight - height) / 2,
+            cssWidth: cssWidth,
+            cssHeight: cssHeight
+        };
+    }
+
+    private static function placeBanner(slot:Dynamic):Void {
+        var box:Dynamic = bannerLayout(slot.canvas, slot.placement, slot.width, slot.height);
+        slot.element.style.left = box.left + "px";
+        slot.element.style.top = box.top + "px";
+        slot.element.style.width = slot.width + "px";
+        slot.element.style.height = slot.height + "px";
+    }
+
+    private static function listenForBannerResize():Void {
+        if (bannerResizeListening) return;
+        bannerResizeListening = true;
+        Browser.window.addEventListener("resize", function(e:Event):Void {
+            for (slot in bannerSlots) placeBanner(slot);
+        });
+    }
+
+    private static function validBannerPlacement(p:Y8BannerPlacement):Bool {
+        return p != null && Math.isFinite(p.x) && Math.isFinite(p.y)
+            && p.width > 0 && p.height > 0 && p.areaWidth > 0 && p.areaHeight > 0;
+    }
+
+    private static function removeBannerSlot(id:String):Void {
+        var slot:Dynamic = bannerSlots.get(id);
+        if (slot == null) return;
+        bannerSlots.remove(id);
+        slot.element.remove();
     }
 
     private static function isReady():Bool {

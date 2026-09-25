@@ -32,6 +32,10 @@ class Main extends Sprite
 
     private var gameStateText:TextField;
 
+    // Where the demo's banners go: empty outlined sprites the SDK centres the banners on.
+    private var sideBannerPlaceholder:Sprite;
+    private var bottomBannerPlaceholder:Sprite;
+
     private var appId:String = "5ea39283d559303d5320eef4";
     private var gameId:String = "270893";
 
@@ -108,6 +112,16 @@ class Main extends Sprite
 
         createButton("Get Locale", 530, 510, getLocale);
         createButton("Check Blacklist", 770, 510, checkBlacklist);
+
+        // Banners
+        createTitle("Banners", 1030, 70);
+
+        sideBannerPlaceholder = createBannerPlaceholder(1030, 110, 300, 250);
+        bottomBannerPlaceholder = createBannerPlaceholder(30, 668, 728, 90);
+
+        createButton("Banner 300x250", 1030, 380, requestSideBanner);
+        createButton("Banner 728x90", 1030, 430, requestBottomBanner);
+        createButton("Clear Banners", 1030, 480, clearBanners);
 
         Y8.init(appId,gameId,updateAuthUI);
     }
@@ -360,6 +374,61 @@ class Main extends Sprite
             }
         );
     }
+
+    // ============================================================
+    // BANNERS
+    // ============================================================
+
+    private function createBannerPlaceholder(
+        xPos:Float,
+        yPos:Float,
+        placeholderWidth:Float,
+        placeholderHeight:Float
+    ):Sprite
+    {
+        var placeholder:Sprite = new Sprite();
+
+        placeholder.graphics.lineStyle(1, 0x999999);
+        placeholder.graphics.drawRect(0, 0, placeholderWidth, placeholderHeight);
+
+        placeholder.x = xPos;
+        placeholder.y = yPos;
+
+        addChild(placeholder);
+
+        return placeholder;
+    }
+
+
+    private function requestSideBanner(
+        event:MouseEvent
+    ):Void
+    {
+        Y8.requestBannerFor("side", 300, 250, sideBannerPlaceholder, function(error:String):Void
+        {
+            trace(error == null ? "300x250 banner showing" : "No 300x250 banner: " + error);
+        });
+    }
+
+
+    private function requestBottomBanner(
+        event:MouseEvent
+    ):Void
+    {
+        Y8.requestBannerFor("bottom", 728, 90, bottomBannerPlaceholder, function(error:String):Void
+        {
+            trace(error == null ? "728x90 banner showing" : "No 728x90 banner: " + error);
+        });
+    }
+
+
+    private function clearBanners(
+        event:MouseEvent
+    ):Void
+    {
+        Y8.clearAllBanners();
+    }
+
 
     private function pauseGame():Void
     {
