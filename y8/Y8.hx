@@ -26,4 +26,26 @@ class Y8 {
     public static function submitImage(picture:String):Void Y8JS.submitImage(picture);
     public static function getLocale(callback:String->Void):Void Y8JS.getLocale(callback);
     public static function checkBlacklist(callback:Bool->Void):Void Y8JS.checkBlacklist(callback);
+
+    // Banners: `width` x `height` is one of 728x90, 300x250, 320x50, 468x60, 320x100, shown
+    // centred on the placeholder `placement` describes. `callback(null)` once it shows,
+    // otherwise `callback(errorCode)`. `id` names the slot for moveBanner / clearBanner.
+    public static function requestBanner(id:String, width:Int, height:Int, placement:Y8BannerPlacement, ?callback:String->Void):Void Y8JS.requestBanner(id, width, height, placement, callback);
+    public static function moveBanner(id:String, placement:Y8BannerPlacement):Void Y8JS.moveBanner(id, placement);
+    public static function clearBanner(id:String):Void Y8JS.clearBanner(id);
+    public static function clearAllBanners():Void Y8JS.clearAllBanners();
+
+    #if openfl
+    // The same, with the placement taken from a display object on the stage (e.g. an empty
+    // Sprite sized and positioned where the banner should go).
+    public static function requestBannerFor(id:String, width:Int, height:Int, placeholder:openfl.display.DisplayObject, ?callback:String->Void):Void Y8JS.requestBanner(id, width, height, placementOf(placeholder), callback);
+    public static function moveBannerTo(id:String, placeholder:openfl.display.DisplayObject):Void Y8JS.moveBanner(id, placementOf(placeholder));
+
+    private static function placementOf(placeholder:openfl.display.DisplayObject):Y8BannerPlacement {
+        var stage = placeholder.stage;
+        if (stage == null) return null;
+        var bounds = placeholder.getBounds(stage);
+        return { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height, areaWidth: stage.stageWidth, areaHeight: stage.stageHeight };
+    }
+    #end
 }
